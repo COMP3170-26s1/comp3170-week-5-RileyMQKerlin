@@ -1,5 +1,6 @@
 package comp3170.week5;
 
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 import comp3170.InputManager;
 import comp3170.SceneObject;
@@ -11,6 +12,7 @@ public class Scene extends SceneObject {
 	
 	public Scene() {
 		camera = new Camera();
+		camera.setParent(this);
 		createFlower(new Vector4f(0.0f,0.0f,0.f,1.0f));		
 	}
 	
@@ -19,9 +21,14 @@ public class Scene extends SceneObject {
 	}
 	
 	public void createFlower(Vector4f position) {
-		Flower flower = new Flower(20);
+		Flower flower = new Flower(30);
 		flower.setParent(this);	
 		flower.getMatrix().translate(position.x,position.y,0.0f);
+		
+		
+		
+		flower.getMatrix().scale(0.5f);
+
 	}
 
 	public void update(InputManager input, float dt) {

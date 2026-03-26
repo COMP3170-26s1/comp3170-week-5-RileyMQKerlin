@@ -59,6 +59,12 @@ public class Flower extends SceneObject {
 		};
 		    
 		indexBuffer = GLBuffers.createIndexBuffer(indices);
+		
+		FlowerHead head = new FlowerHead(nPetals, colour);
+		head.getMatrix().translate(0f, 1, 0f);
+		head.getMatrix().scale(0.24f);
+
+		head.setParent(this);
 	}
 	
 	public void drawSelf(Matrix4f mvpMatrix) {

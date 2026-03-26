@@ -1,5 +1,12 @@
 package comp3170.week5.sceneobjects;
 
+import static comp3170.Math.TAU;
+import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
+import static org.lwjgl.opengl.GL11.glDrawElements;
+import static org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.glBindBuffer;
+
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
@@ -14,10 +21,14 @@ public class FlowerHead extends SceneObject {
 	private static final String FRAGMENT_SHADER = "fragment.glsl";
 	private Shader shader;
 
-	private Vector3f petalColour = new Vector3f(1.0f,1.0f,1.0f);
+
+	private Vector3f petalColour = new Vector3f(1.f,1.f,.3f);
 
 	private Vector4f[] vertices;
 	private int vertexBuffer;
+	
+	private int[] indices;
+	private int indexBuffer;
 
 	public FlowerHead(int nPetals, Vector3f colour) {
 		
@@ -27,7 +38,37 @@ public class FlowerHead extends SceneObject {
 		
 		shader = ShaderLibrary.instance.compileShader(VERTEX_SHADER, FRAGMENT_SHADER);		
 		
-		petalColour = colour;
+	//	petalColour = colour;
+		
+		
+		vertices = new Vector4f[nPetals + 1];
+
+		vertices[0] = new Vector4f(0, 0, 0, 1); // centre
+
+		Matrix4f rotate = new Matrix4f();
+		
+		for (int i = 0; i < nPetals; i++) {
+			float angle = i * TAU / nPetals;
+
+			rotate.rotationZ(angle); // R = R(angle)
+			if(i%2==0)vertices[i + 1] = new Vector4f(2, 0, 0, 1); // v = (1,0,0)
+			else vertices[i + 1] = new Vector4f(1, 0, 0, 1); // v = (1,0,0)
+			vertices[i + 1].mul(rotate); // v = R v
+		}
+
+		vertexBuffer = GLBuffers.createBuffer(vertices);
+
+		indices = new int[nPetals * 3]; // each side creates 1 triangle with 3 vertices
+
+		int k = 0;
+		for (int i = 1; i <= nPetals; i++) {
+			indices[k++] = 0;
+			indices[k++] = i;
+			indices[k++] = (i % nPetals) + 1; // wrap around when i = NSIDES
+		}
+
+		indexBuffer = GLBuffers.createIndexBuffer(indices);
+		
 	}
 
 	public void update(float dt) {
@@ -35,6 +76,12 @@ public class FlowerHead extends SceneObject {
 	}
 
 	public void drawSelf(Matrix4f mvpMatrix) {
-		// TODO: Add any appropriate draw code. (TASK 1)
+		shader.enable();
+		shader.setUniform("u_mvpMatrix", mvpMatrix);
+	    shader.setAttribute("a_position", vertexBuffer);
+	    shader.setUniform("u_colour", petalColour);	    
+	    
+	    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+	    glDrawElements(GL_TRIANGLES, indices.length, GL_UNSIGNED_INT, 0);	
 	}
 }
